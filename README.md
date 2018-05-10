@@ -15,13 +15,13 @@ A standard interface for smart contract coins.
 
 ## Abstract
 
-The following standard allows for the implementation of a standard API for coins within smart contracts.
-This standard provides basic functionality to transfer coins, as well as allow Coins to be approved so they can be spent by another on-chain third party.
+The following standard allows for the implementation of a standard API for coins from/to smart contracts.
+This standard provides basic functionality to transfer coins, as well as interact with smart contract.
 
 
 ## Motivation
 
-A standard interface allows any Coins on Ethereum to be re-used by other applications: from wallets to decentralized exchanges.
+A standard interface allows any Coins on Fabcoin to be re-used by other applications: from wallets to decentralized exchanges.
 
 
 ## Specification
@@ -32,76 +32,57 @@ A standard interface allows any Coins on Ethereum to be re-used by other applica
 **NOTE**: Callers MUST handle `false` from `returns (bool success)`.  Callers MUST NOT assume that `false` is never returned!
 
 
-#### name
-
-Returns the name of the Coin - e.g. `"MyCoin"`.
-
-OPTIONAL - This method can be used to improve usability,
-but interfaces and other contracts MUST NOT expect these values to be present.
-
 
 ``` js
-function name() view returns (string name)
+function deposit(uint256 coins)  public returns (bool success);
+    function depositTo(address to, uint256 coins)  public returns (bool success);
+    function withdrawRequest(uint256 coins)  public returns (uint256 serialNumber);
+    function withdrawConfirm(uint256 serailNumber, uint256 coins)  public returns (bool success);
+    function withdrawCancel(uint256 serailNumber)  public returns (bool success);
 ```
 
 
-#### symbol
+#### deposit
 
-Returns the symbol of the Coin. E.g. "HIX".
-
-OPTIONAL - This method can be used to improve usability,
-but interfaces and other contracts MUST NOT expect these values to be present.
+Transfers `_coins` amount of Coins from sender to address contract, and MUST fire the `DepositEvent` event.
 
 ``` js
-function symbol() view returns (string symbol)
+function deposit(uint256 _coins)  public returns (bool success)
 ```
 
 
+#### depositTo
 
-#### decimals
-
-Returns the number of decimals the Coin uses - e.g. `8`, means to divide the Coin amount by `100000000` to get its user representation.
-
-OPTIONAL - This method can be used to improve usability,
-but interfaces and other contracts MUST NOT expect these values to be present.
+Transfers `_coins` amount of Coins from sender to `_to` address , and MUST fire the `DepositEvent` event.
 
 ``` js
-function decimals() view returns (uint8 decimals)
+function depositTo(address _to, uint256 _coins)  public returns (bool success)
 ```
 
 
-#### totalSupply
+#### withdrawRequest
 
-Returns the total Coin supply.
-
-``` js
-function totalSupply() view returns (uint256 totalSupply)
-```
-
-
-
-#### balanceOf
-
-Returns the account balance of another account with address `_owner`.
+Withdraw request `_coins` amount of Coins from contract, return smart contract serial number.
 
 ``` js
-function balanceOf(address _owner) view returns (uint256 balance)
+function withdrawRequest(uint256 _coins)  public returns (uint256 serialNumber)
 ```
 
+#### withdrawConfirm
 
-
-#### transfer
-
-Transfers `_value` amount of Coins to address `_to`, and MUST fire the `Transfer` event.
-The function SHOULD `throw` if the `_from` account balance does not have enough Coins to spend.
-
-*Note* Transfers of 0 values MUST be treated as normal transfers and fire the `Transfer` event.
+Withdraw confirm `_serialNumber` smart contract transaction serial number with `_coins` amount of Coins from contract, and MUST fire the `WithdrawConfirmEvent` event.
 
 ``` js
-function transfer(address _to, uint256 _value) returns (bool success)
+function withdrawConfirm(uint256 _serailNumber, uint256 _coins)  public returns (bool success)
 ```
 
+#### withdrawCancel
 
+Withdraw cancel `_serialNUmber` smart contract transaction, and MUST fire the `WithdrawCancelEvent` event.
+
+``` js
+function withdrawCancel(uint256 _serailNumber)  public returns (bool success);
+```
 
 #### transferFrom
 
@@ -117,28 +98,6 @@ The function SHOULD `throw` unless the `_from` account has deliberately authoriz
 function transferFrom(address _from, address _to, uint256 _value) returns (bool success)
 ```
 
-
-
-#### approve
-
-Allows `_spender` to withdraw from your account multiple times, up to the `_value` amount. If this function is called again it overwrites the current allowance with `_value`.
-
-**NOTE**: To prevent attack vectors like the one [described here](https://docs.google.com/document/d/1YLPtQxZu1UAvO9cZ1O2RPXBbT0mooh4DYKjA_jp-RLM/) and discussed [here](https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729),
-clients SHOULD make sure to create user interfaces in such a way that they set the allowance first to `0` before setting it to another value for the same spender.
-THOUGH The contract itself shouldn't enforce it, to allow backwards compatibility with contracts deployed before
-
-``` js
-function approve(address _spender, uint256 _value) returns (bool success)
-```
-
-
-#### allowance
-
-Returns the amount which `_spender` is still allowed to withdraw from `_owner`.
-
-``` js
-function allowance(address _owner, address _spender) view returns (uint256 remaining)
-```
 
 
 
@@ -173,10 +132,9 @@ There are a couple of FIP401-compliant smart contract deployed on the fabcoin ne
 
 
 #### Example implementations are available at
-- https://github.com/jonathanyan/FIP-001
-
+- https://github.com/jonathanyan/FIP-001/blob/master/FIP001.sol
 #### Implementation of adding the force to 0 before calling "approve" again:
-- https://github.com/jonathanyan/FIP-001
+- https://github.com/jonathanyan/FIP-001/blob/master/FIP001.sol
 
 
 ## History
