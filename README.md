@@ -1,32 +1,32 @@
 ---
-eip: 20
-title: ERC-20 Token Standard
-author: Fabian Vogelsteller <fabian@ethereum.org>, Vitalik Buterin <vitalik.buterin@ethereum.org>
+fip: 1
+title: FRC-001 Value Transfer Standard
+author: Jonathan Yan <jonathan@fa.biz>
 type: Standards Track
-category: ERC
-status: Final
-created: 2015-11-19
+category: FRC
+status: Draft
+created: 2018-05-10
 ---
 
 ## Simple Summary
 
-A standard interface for tokens.
+A standard interface for smart contract coins.
 
 
 ## Abstract
 
-The following standard allows for the implementation of a standard API for tokens within smart contracts.
-This standard provides basic functionality to transfer tokens, as well as allow tokens to be approved so they can be spent by another on-chain third party.
+The following standard allows for the implementation of a standard API for coins within smart contracts.
+This standard provides basic functionality to transfer coins, as well as allow Coins to be approved so they can be spent by another on-chain third party.
 
 
 ## Motivation
 
-A standard interface allows any tokens on Ethereum to be re-used by other applications: from wallets to decentralized exchanges.
+A standard interface allows any Coins on Ethereum to be re-used by other applications: from wallets to decentralized exchanges.
 
 
 ## Specification
 
-## Token
+## Coin
 ### Methods
 
 **NOTE**: Callers MUST handle `false` from `returns (bool success)`.  Callers MUST NOT assume that `false` is never returned!
@@ -34,7 +34,7 @@ A standard interface allows any tokens on Ethereum to be re-used by other applic
 
 #### name
 
-Returns the name of the token - e.g. `"MyToken"`.
+Returns the name of the Coin - e.g. `"MyCoin"`.
 
 OPTIONAL - This method can be used to improve usability,
 but interfaces and other contracts MUST NOT expect these values to be present.
@@ -47,7 +47,7 @@ function name() view returns (string name)
 
 #### symbol
 
-Returns the symbol of the token. E.g. "HIX".
+Returns the symbol of the Coin. E.g. "HIX".
 
 OPTIONAL - This method can be used to improve usability,
 but interfaces and other contracts MUST NOT expect these values to be present.
@@ -60,7 +60,7 @@ function symbol() view returns (string symbol)
 
 #### decimals
 
-Returns the number of decimals the token uses - e.g. `8`, means to divide the token amount by `100000000` to get its user representation.
+Returns the number of decimals the Coin uses - e.g. `8`, means to divide the Coin amount by `100000000` to get its user representation.
 
 OPTIONAL - This method can be used to improve usability,
 but interfaces and other contracts MUST NOT expect these values to be present.
@@ -72,7 +72,7 @@ function decimals() view returns (uint8 decimals)
 
 #### totalSupply
 
-Returns the total token supply.
+Returns the total Coin supply.
 
 ``` js
 function totalSupply() view returns (uint256 totalSupply)
@@ -92,8 +92,8 @@ function balanceOf(address _owner) view returns (uint256 balance)
 
 #### transfer
 
-Transfers `_value` amount of tokens to address `_to`, and MUST fire the `Transfer` event.
-The function SHOULD `throw` if the `_from` account balance does not have enough tokens to spend.
+Transfers `_value` amount of Coins to address `_to`, and MUST fire the `Transfer` event.
+The function SHOULD `throw` if the `_from` account balance does not have enough Coins to spend.
 
 *Note* Transfers of 0 values MUST be treated as normal transfers and fire the `Transfer` event.
 
@@ -105,10 +105,10 @@ function transfer(address _to, uint256 _value) returns (bool success)
 
 #### transferFrom
 
-Transfers `_value` amount of tokens from address `_from` to address `_to`, and MUST fire the `Transfer` event.
+Transfers `_value` amount of Coins from address `_from` to address `_to`, and MUST fire the `Transfer` event.
 
-The `transferFrom` method is used for a withdraw workflow, allowing contracts to transfer tokens on your behalf.
-This can be used for example to allow a contract to transfer tokens on your behalf and/or to charge fees in sub-currencies.
+The `transferFrom` method is used for a withdraw workflow, allowing contracts to transfer Coins on your behalf.
+This can be used for example to allow a contract to transfer Coins on your behalf and/or to charge fees in sub-currencies.
 The function SHOULD `throw` unless the `_from` account has deliberately authorized the sender of the message via some mechanism.
 
 *Note* Transfers of 0 values MUST be treated as normal transfers and fire the `Transfer` event.
@@ -147,9 +147,9 @@ function allowance(address _owner, address _spender) view returns (uint256 remai
 
 #### Transfer
 
-MUST trigger when tokens are transferred, including zero value transfers.
+MUST trigger when Coins are transferred, including zero value transfers.
 
-A token contract which creates new tokens SHOULD trigger a Transfer event with the `_from` address set to `0x0` when tokens are created.
+A Coin contract which creates new Coins SHOULD trigger a Transfer event with the `_from` address set to `0x0` when Coins are created.
 
 ``` js
 event Transfer(address indexed _from, address indexed _to, uint256 _value)
@@ -169,25 +169,23 @@ event Approval(address indexed _owner, address indexed _spender, uint256 _value)
 
 ## Implementation
 
-There are already plenty of ERC20-compliant tokens deployed on the Ethereum network.
-Different implementations have been written by various teams that have different trade-offs: from gas saving to improved security.
+There are a couple of FIP401-compliant smart contract deployed on the fabcoin network.
+
 
 #### Example implementations are available at
-- https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol
-- https://github.com/ConsenSys/Tokens/blob/master/contracts/eip20/EIP20.sol
+- https://github.com/jonathanyan/FIP-001
 
 #### Implementation of adding the force to 0 before calling "approve" again:
-- https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol
-
+- https://github.com/jonathanyan/FIP-001
 
 
 ## History
 
 Historical links releated to this standard:
 
-- Original proposal from Vitalik Buterin: https://github.com/ethereum/wiki/wiki/Standardized_Contract_APIs/499c882f3ec123537fc2fccd57eaa29e6032fe4a
-- Reddit discussion: https://www.reddit.com/r/ethereum/comments/3n8fkn/lets_talk_about_the_coin_standard/
-- Original Issue #20: https://github.com/ethereum/EIPs/issues/20
+- Original proposal from Jonathan Yan: 
+  https://github.com/jonathanyan/FIP-001
+
 
 
 
