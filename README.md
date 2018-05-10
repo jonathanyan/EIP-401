@@ -93,7 +93,6 @@ MUST trigger on any successful call to `withdrawConfirm(uint256 _serailNumber, u
 
 ``` js
 event WithdrawConfirmEvent(address indexed to, uint256 coins);
-    event WithdrawCancelEvent(address indexed to, uint256 coins);
 ```
 
 #### WithdrawCancelEvent
