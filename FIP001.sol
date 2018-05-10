@@ -9,6 +9,7 @@ contract FIP001Interface {
     function withdrawCancel(uint256 serailNumber)  public returns (bool success);
 
     event DepositEvent(address indexed to, uint256 coins);
+    event WithdrawRequestEvent(address indexed to, uint256 coins);
     event WithdrawConfirmEvent(address indexed to, uint256 coins);
     event WithdrawCancelEvent(address indexed to, uint256 coins);
 }
@@ -46,6 +47,7 @@ contract StandardFIP001 is FIP001Interface {
         sequenceNumber += 1;
         uint256 serialNumber = sequenceNumber;
         fip001List[serialNumber] = FIP001Account(msg.sender, coins, 1);
+        WithdrawRequestEvent(msg.sender, coins);
         return serialNumber;
     }
     

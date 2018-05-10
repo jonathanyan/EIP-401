@@ -52,7 +52,9 @@ function depositTo(address _to, uint256 _coins)  public returns (bool success)
 
 #### withdrawRequest
 
-Withdraw request `_coins` amount of Coins from contract, return smart contract serial number.
+Withdraw request `_coins` amount of Coins from contract, return smart contract serial number, and MUST fire the `WithdrawRequestEvent` event.
+
+**NOTE**: Withdraw can be requested from contract.
 
 ``` js
 function withdrawRequest(uint256 _coins)  public returns (uint256 serialNumber)
@@ -85,6 +87,14 @@ MUST trigger on any successful call to `deposit(uint256 _coins)` and `depositTo(
 
 ``` js
 event DepositEvent(address indexed to, uint256 coins)
+```
+
+#### WithdrawRequestEvent
+
+MUST trigger on any successful call to `withdrawRequest(uint256 _coins)`.
+
+``` js
+event WithdrawRequestEvent(address indexed to, uint256 coins);
 ```
 
 #### WithdrawConfirmEvent
