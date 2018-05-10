@@ -106,7 +106,7 @@ event WithdrawCancelEvent(address indexed to, uint256 coins);
 
 ## Implementation
 
-There are a couple of FIP401-compliant smart contract deployed on the fabcoin network.
+There are a couple of FIP001-compliant smart contract deployed on the fabcoin network.
 
 
 #### Example implementations are available at
