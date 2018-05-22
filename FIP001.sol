@@ -7,6 +7,7 @@ contract FIP001Interface {
     function withdrawRequest(uint256 coins)  public returns (uint256 serialNumber);
     function withdrawConfirm(uint256 serailNumber, uint256 coins)  public returns (bool success);
     function withdrawCancel(uint256 serailNumber)  public returns (bool success);
+    function getWithdrawBalance(uint256 serialNumber) public returns (uint256 coins);
 
     event DepositEvent(address indexed to, uint256 coins);
     event WithdrawRequestEvent(address indexed to, uint256 coins);
@@ -25,21 +26,21 @@ contract StandardFIP001 is FIP001Interface {
     mapping (uint256 => FIP001Account) internal fip001List;
     mapping (address => uint256) internal fip001Balance;
 
-    function StandardFIP001() public {
+    constructor() public {
         sequenceNumber = 0;
     }
 
     function deposit( uint256 coins)  public returns (bool) {
-        require(coins > 0);
+        if (coins <= 0) return false;
         //fip001Balance[] += msg.value;
-        DepositEvent(msg.sender, coins);
+        emit DepositEvent(msg.sender, coins);
         return true;
     }
 
     function depositTo(address to, uint256 coins)  public returns (bool) {
-        require(coins > 0);
+        if (coins <= 0) return false;
         fip001Balance[to] += coins;
-        DepositEvent(msg.sender, coins);
+        emit DepositEvent(msg.sender, coins);
         return true;
     }
 
@@ -47,7 +48,7 @@ contract StandardFIP001 is FIP001Interface {
         sequenceNumber += 1;
         uint256 serialNumber = sequenceNumber;
         fip001List[serialNumber] = FIP001Account(msg.sender, coins, 1);
-        WithdrawRequestEvent(msg.sender, coins);
+        emit WithdrawRequestEvent(msg.sender, coins);
         return serialNumber;
     }
     
@@ -58,16 +59,23 @@ contract StandardFIP001 is FIP001Interface {
         if (fip001List[serialNumber].coins > coins) {
             return false;
         }
-        fip001List[serialNumber].status == 1;
-        WithdrawConfirmEvent(msg.sender, coins);
+        fip001List[serialNumber].status == 0;
+        emit WithdrawConfirmEvent(msg.sender, coins);
         return true;
     }
-    function withdrawCancel(uint256 serialNumber)  public returns (bool) {
+
+    function withdrawCancel(uint256 serialNumber) public returns (bool) {
         if (fip001List[serialNumber].status == 0) {
             return false;
         }
         fip001List[serialNumber].status == 0;
-        WithdrawCancelEvent(msg.sender, fip001List[serialNumber].coins);
+        emit WithdrawCancelEvent(msg.sender, fip001List[serialNumber].coins);
         return true;
+    }
+
+    function getWithdrawBalance(uint256 serialNumber) public returns (uint256) {
+        if (serialNumber == 0 || serialNumber > sequenceNumber ) return 0;
+        if (fip001List[serialNumber].status == 0) return 0;
+        return fip001List[serialNumber].coins;
     }
 }
