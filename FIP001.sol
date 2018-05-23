@@ -1,17 +1,15 @@
 pragma solidity ^0.4.20;
 
-
 contract FIP001Interface {
-    function deposit(uint256 coins)  public returns (bool success);
-    function depositTo(address to, uint256 coins)  public returns (bool success);
-    function withdrawRequest(uint256 coins)  public returns (uint256 serialNumber);
-    function withdrawConfirm(uint256 serailNumber, uint256 coins)  public returns (bool success);
+    function deposit() payable public returns (bool success);
+    function depositTo(address to) payable public returns (bool success);
+    function withdrawRequest(uint256 coins) public returns (uint256 serialNumber);
+    function withdrawConfirm(uint256 serailNumber) payable public returns (bool success);
     function withdrawCancel(uint256 serailNumber)  public returns (bool success);
 
     function getWithdrawBalance(uint256 serialNumber) public returns (uint256 coins);
     function getWithdrawRequest(uint256 serialNumber) public returns (uint256 coins);
-    function getWithdrawConfirm(uint256 serialNumber) public returns (uint256 coins);
-
+    function getWithdrawConfirm(uint256 serialNumber) public returns (uint256 coins); 
     function getWithdrawHeight() public returns (uint256 sequenceNumber);
     function getWithdrawAddress(uint256 serialNumber) public returns (string accountAddress);
 
@@ -39,37 +37,37 @@ contract StandardFIP001 is FIP001Interface {
         sequenceNumberDeposit = 0;
     }
 
-    function deposit(uint256 coins)  public returns (bool) {
-        require(coins > 0);
+    function deposit() payable public returns (bool) {
+        return depositTo(address(this));
+    }
+
+    function depositTo(address to) payable public returns (bool) {
+        require(msg.value > 0);
         sequenceNumberDeposit += 1;
-        fip001Deposit[sequenceNumberDeposit] = FIP001Account(msg.sender, address(this), coins);
-        emit DepositEvent(msg.sender, coins);
+        fip001Deposit[sequenceNumberDeposit] = FIP001Account(msg.sender, to, msg.value);
+        emit DepositEvent(msg.sender, msg.value);
         return true;
     }
 
-    function depositTo(address to, uint256 coins)  public returns (bool) {
-        require(coins > 0);
-        sequenceNumberDeposit += 1;
-        fip001Deposit[sequenceNumberDeposit] = FIP001Account(msg.sender, to, coins);
-        emit DepositEvent(msg.sender, coins);
-        return true;
+    function withdrawRequest(uint256 coins) public returns (uint256) {
+        return withdrawRequestInternal(msg.sender, coins);
     }
 
-    function withdrawRequest(uint256 coins)  public returns (uint256) {
+    function withdrawRequestInternal(address to, uint256 coins)  private returns (uint256) {
         require(coins > 0);
         sequenceNumberWithdraw += 1;
         uint256 serialNumber = sequenceNumberWithdraw;
-        fip001WithdrawRequest[serialNumber] = FIP001Account(address(this), msg.sender, coins);
-        emit WithdrawRequestEvent(msg.sender, coins);
+        fip001WithdrawRequest[serialNumber] = FIP001Account(address(this), to, coins);
+        emit WithdrawRequestEvent(to, coins);
         return serialNumber;
     }
     
-    function withdrawConfirm(uint256 serialNumber, uint256 coins) public returns (bool) { 
-        require(coins > 0 && serialNumber > 0 && serialNumber <= sequenceNumberWithdraw);
+    function withdrawConfirm(uint256 serialNumber) payable public returns (bool) { 
+        require(msg.value > 0 && serialNumber > 0 && serialNumber <= sequenceNumberWithdraw);
         if (fip001WithdrawConfirm[serialNumber].coins > 0 ) {
-            fip001WithdrawConfirm[serialNumber].coins += coins;
+            fip001WithdrawConfirm[serialNumber].coins += msg.value;
         } else {
-            fip001WithdrawConfirm[serialNumber] = FIP001Account(msg.sender, fip001WithdrawRequest[serialNumber].to, coins);
+            fip001WithdrawConfirm[serialNumber] = FIP001Account(msg.sender, fip001WithdrawRequest[serialNumber].to, msg.value);
         }
         emit WithdrawConfirmEvent(msg.sender, fip001WithdrawConfirm[serialNumber].coins);
         return true;
