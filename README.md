@@ -34,19 +34,19 @@ A standard interface allows any Coins on Fabcoin to be re-used by other applicat
 
 #### deposit
 
-Transfers `_coins` amount of Coins from sender to address contract, and MUST fire the `DepositEvent` event.
+Transfers the amount of Coins in RPC call from sender to address contract, and MUST fire the `DepositEvent` event.
 
 ``` js
-function deposit(uint256 _coins)  public returns (bool success)
+function deposit()  public returns (bool success)
 ```
 
 
 #### depositTo
 
-Transfers `_coins` amount of Coins from sender to `_to` address , and MUST fire the `DepositEvent` event.
+Transfers the amount of Coins in RPC call from sender to `_to` address , and MUST fire the `DepositEvent` event.
 
 ``` js
-function depositTo(address _to, uint256 _coins)  public returns (bool success)
+function depositTo(address _to)  public returns (bool success)
 ```
 
 
@@ -62,10 +62,10 @@ function withdrawRequest(uint256 _coins)  public returns (uint256 serialNumber)
 
 #### withdrawConfirm
 
-Withdraw confirm `_serialNumber` smart contract transaction serial number with `_coins` amount of Coins from contract, and MUST fire the `WithdrawConfirmEvent` event.
+Withdraw confirm `_serialNumber` smart contract transaction serial number with the amount of Coins in RPC call , and MUST fire the `WithdrawConfirmEvent` event.
 
 ``` js
-function withdrawConfirm(uint256 _serailNumber, uint256 _coins)  public returns (bool success)
+function withdrawConfirm(uint256 _serailNumber)  public returns (bool success)
 ```
 
 #### withdrawCancel
