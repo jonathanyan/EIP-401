@@ -1,8 +1,0 @@
-#0  0x00007ffff57c5c1d in nanosleep () at ../sysdeps/unix/syscall-template.S:84
-#1  0x00007ffff752891f in boost::this_thread::hiden::sleep_for(timespec const&) () from /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.58.0
-#2  0x00005555558e97bc in boost::this_thread::sleep_for (ns=<synthetic pointer>) at /usr/include/boost/thread/pthread/thread_data.hpp:243
-#3  boost::this_thread::sleep_for<long, boost::ratio<1l, 1000l> > (d=...) at /usr/include/boost/thread/v2/thread.hpp:112
-#4  0x00005555558e8310 in MilliSleep (n=<optimized out>) at utiltime.cpp:69
-#5  0x00005555556339a2 in WaitForShutdown (threadGroup=0x7fffffffddd0) at fabcoind.cpp:49
-#6  0x00005555556347c7 in AppInit (argc=11, argv=<optimized out>) at fabcoind.cpp:181
-#7  0x000055555558611f in main (argc=11, argv=0x7fffffffe078) at fabcoind.cpp:195
