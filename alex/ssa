@@ -1,0 +1,127 @@
+#!/bin/bash
+# source ../assert.sh
+
+scli-r getinfo
+scli-r generate 30
+scli-r listaccounts
+export ADDR1=`scli-r getaccountaddress j1`
+export ADDR2=`scli-r getaccountaddress j2`
+export ADDR=`~/s2/src/fabcoin-cli -regtest -rpcuser=fabcoinrpc -rpcpassword=P0 \
+            -rpcconnect=localhost:14191 getaccountaddress ""`
+export ADDRC=`scli-r getaccountaddress mySmartContract`
+export TXID2=`scli-r sendtoaddress $ADDR1 7`
+echo "transaction test"
+scli-r gettransaction $TXID2
+
+scli-r listaccounts
+
+## CREATION
+bytecode=`cat EIP20.bin`\
+$(printf "%064d" 539)\
+$(printf "%064d" 2)\
+$(printf "%064d" 60)\
+000000000000000000000000000000000000000000000000000000000000000d\
+48656c6c6f2c20776f726c642100000000000000000000000000000000000000
+## Translates to "Hello, world!" when translated back to UTF8
+
+echo "make contract"
+scli-r createcontract $ADDRC ${bytecode} $ADDR1 6000000 0.0000004
+
+## Not testing code
+
+export VMADDRC=`scli-r getVMAddress $ADDRC|jq -r '.addressInVM'`
+export VMADDR1=`scli-r getVMAddress $ADDR1|jq -r '.addressInVM'`
+export VMADDR2=`scli-r getVMAddress $ADDR2|jq -r '.addressInVM'`
+export VMADDR=`scli-r getVMAddress $ADDR|jq -r '.addressInVM'`
+echo "empty address " $ADDR " " $VMADDR
+echo "contract " $ADDRC " " $VMADDRC
+echo "origin " $ADDR1 " " $VMADDR1
+
+## --------------------------
+# I don't know enough to reorder this code, so I've split the block logically
+# and hopefully everything is all ok dokeys
+
+scli-r generate 1 > /dev/null
+scli-r getcontractinfo $ADDRC
+
+#  ✓ creation: should create an initial balance of 10000 for the creator
+out=$(scli-r callcontract $ADDRC 18160ddd000000000000000000000000 | jq -r '.output')
+#asserteq $totalSupply $output
+echo $out
+# The output of balanceOf(contract creater) should also equal the total supply
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR1}000000000000000000000000 | jq -r '.output')
+#asserteq $totalSupply $output
+echo $out
+
+#  ✓ creation: test correct setting of vanity information (64ms)
+out=$(scli-r callcontract $ADDRC 313ce567000000000000000000000000 | jq -r '.output')
+echo $out
+#asserteq $decimals $output
+out=$(scli-r callcontract $ADDRC 95d89b41000000000000000000000000 | jq -r '.output')
+echo $out
+
+## --------------------------
+
+#  ✓ transfers: should transfer 10000 to accounts[1] with accounts[0] having 10000 (71ms)
+
+# Fuck scripting in bash. Nothing here gets to get aligned nicely since bash
+# will treat any spaces or tabs as literals (and then whine when it breaks).
+# Suggestions on how to format long commands so it's less disgusting are welcome.
+echo transfers
+out=$(scli-r sendtocontract $ADDRC \
+a9059cbb000000000000000000000000\
+${VMADDR2}\
+$(printf "%064d" 50) $ADDR1 2500000 0.0000005 1 )
+
+scli-r generate 1 > /dev/null
+## Check balances of 1 and 2 to ensure they are as expected
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR1} | jq -r '.output')
+echo $out ## 539 - 50 = 489
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR2} | jq -r '.output')
+echo $out ## 50
+
+## Try doing a second transaction.
+out=$(scli-r sendtocontract $ADDRC \
+a9059cbb000000000000000000000000\
+${VMADDR2}\
+$(printf "%064d" 400) $ADDR1 2500000 0.0000005 1 | jq -r '.output')
+
+scli-r generate 1 > /dev/null
+## Check balances of 1 and 2 to ensure they are as expected
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR1} | jq -r '.output')
+echo $out ## 89
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR2} | jq -r '.output')
+echo $out ## 450
+
+echo '✓ transfers: should fail when trying to transfer 10001 to accounts[1] with accounts[0] having 10000'
+echo 'This is the test that hangs'
+sleep 5
+out=$(scli-r sendtocontract $ADDRC \
+a9059cbb000000000000000000000000\
+${VMADDR2}\
+$(printf "%064d" 500) $ADDR1 2500000 0.0000005 1 )
+echo $out
+echo "It should hang when it tries to generate the next block."
+scli-r generate 1
+## Check balances of 1 and 2 to ensure they are as expected
+scli-r getcontractinfo $ADDRC
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR1} | jq -r '.output')
+echo $out ## 89
+out=$(scli-r callcontract $ADDRC 70a08231000000000000000000000000${VMADDR2} | jq -r '.output')
+echo $out ## 450
+
+
+
+#  ✓ transfers: should handle zero-transfers normally
+#  normal transfers without approvals
+
+## --------------------------
+
+
+#  ✓ approvals: msg.sender should approve 100 to accounts[1] (49ms)
+#  ✓ approvals: msg.sender approves accounts[1] of 100 & withdraws 20 once. (174ms)
+#  ✓ approvals: msg.sender approves accounts[1] of 100 & withdraws 20 twice. (206ms)
+#  ✓ approvals: msg.sender approves accounts[1] of 100 & withdraws 50 & 60 (2nd tx should fail) (138ms)
+#  ✓ approvals: attempt withdrawal from account with no allowance (should fail)
+#  ✓ approvals: allow accounts[1] 100 to withdraw from accounts[0]. Withdraw 60 and then approve 0 & attempt transfer. (111ms)
+
