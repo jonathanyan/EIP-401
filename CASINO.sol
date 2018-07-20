@@ -1,6 +1,3 @@
-
-
-
 pragma solidity ^0.4.24;
 
 
@@ -17,7 +14,7 @@ contract CASINO {
     uint256 public userIndex;
     address[MAX_REGISTER] public addressLookup;
     address[WINNER_BUFFER_SIZE][CHAIN_PHASE_PLAYER] public winners;
-    uint256[WINNER_BUFFER_SIZE] public phaseHeight;
+    uint256[WINNER_BUFFER_SIZE] public winnersHeight;
     mapping (address => uint256) public balances;
     
 
@@ -38,61 +35,66 @@ contract CASINO {
         userIndex += 1;
         if ( userIndex >= MAX_REGISTER ) userIndex = 0;
         totalPlayer += 1;
-        if ( totalPlayer >= MAX_REGISTER )  totalPlayer = MAX_REGISTER ;
+        if ( totalPlayer >= MAX_REGISTER )  totalPlayer = MAX_REGISTER;
 
         return true;
     }
 
-    function getTotalPlayer() public returns (uint256 numPlayer) {
+    function getTotalPlayer() public view returns (uint256 numPlayer) {
         uint256 j = 0;
-        for ( uint i=0; i<MAX_REGISTER; ++i ) {
-            if ( balances[addressLookup[i]] > 0 ) j+=1 ;
+        for ( uint i = 0; i < MAX_REGISTER; ++i) {
+            if ( balances[addressLookup[i]] > 0 ) j += 1;
+        }
         return j;
+    }
+
+    function isWinnerId(uint256 seq, uint256 winnerList) private pure returns (bool success) {
+        uint256 w = winnerList;
+        for ( uint m = 0; m < CHAIN_PHASE_PLAYER; ++m ) {
+            uint256 u = (w & 0xffff);
+            if ( seq == u) return true;
+            w = (w >> 4); 
+        }
+        return false;
     }
 
     function setNextWinners(uint256 currentPhase, uint256 winnerList) public returns (bool success) {
 
         require(currentPhase == phaseHeight);
 
-	uint j = 0;
-	uint k = 0;
-        mapping (uint256 => uint256) winnersMap;
-        uint256 w = winnerList;
-
-        for ( uint m=0; m<CHAIN_PHASE_PLAYER; ++m ) {
-             uint256 u = (w & 0xffff);
-             w = (w >> 4);
-             winnersMap[w] = 1; 
-        }
+        uint256 j = 0;
+        uint256 k = 0;
       
         phaseHeight += 1;
 
-        for ( uint i=0; i<MAX_REGISTER; ++i ) {
+        for ( uint i = 0; i < totalPlayer; ++i ) {
 
             if ( balances[addressLookup[i]] == 0 ) continue;
 
             balances[addressLookup[i]] -= 1;  
 
-            if ( winnersMap(k) > 0  ) {
-                winners[phaseIndex][j] = balances[addressLookup[i]];
+            k += 1;
+
+            if ( isWinnerId(k, winnerList) ) {
+                winners[phaseIndex][j] = addressLookup[i];
                 j += 1;
             }
-
-            k += 1;
         } 
+        
+        winnersHeight[phaseIndex] = phaseHeight;
 
-        phaseIndex = ( (phaseIndex + 1) % WINNDER_BUFFER_SIZE );
+        phaseIndex = ( (phaseIndex + 1) % WINNER_BUFFER_SIZE );
 
         return true;
     }
 
-    function isWinnerAt(uint256 currentPhase) public returns (bool success) {
+    function isWinnerMe(uint256 currentPhase) public view returns (bool success) {
         if (currentPhase > phaseHeight || currentPhase + WINNER_BUFFER_SIZE <= phaseHeight) {
             return false;
         }
 
-        for ( uint i=0; i<CHAIN_PHASE_PLAYER; ++i ) {
-            if ( winners[currentPhase % WINNER_BUFFER_SIZE][i] = msg.sender ) {
+        for ( uint i = 0 ; i < CHAIN_PHASE_PLAYER; ++i ) {
+            if ( winners[currentPhase % WINNER_BUFFER_SIZE][i] == msg.sender ) {
                 return true;
             }
         }
